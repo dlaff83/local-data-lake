@@ -1,1 +1,1 @@
-Repo set up
+A sandbox environment for creating a local Data Lake using open source services.
