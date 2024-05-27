@@ -13,7 +13,7 @@ services:
       - "${MINIO_PORT_1}:9000"
       - "${MINIO_PORT_2}:9001"
     volumes:
-      - ./data:/data
+      - ./minio/data:/data
     networks:
       - datalake   
 
