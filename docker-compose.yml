@@ -1,23 +1,53 @@
-name: local-data-lake
+name: data-lake
 services:
-  minio:
-    image: quay.io/minio/minio:latest
-    container_name: minio
-    command: server /data --console-address ":9001"
+  clickhouse:
+    image: clickhouse/clickhouse-server
+    container_name: clickhouse
+    hostname: clickhouse
     env_file:
       - .env
     environment:
+      CLICKHOUSE_DB: warehouse
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+    volumes:
+      - ./services/clickhouse/config.d/config.xml:/etc/clickhouse-server/config.d/config.xml
+    ports:
+      - '127.0.0.1:8123:8123'
+      - '127.0.0.1:9000:9000'
+    depends_on:
+      - minio
+    networks:
+      - datalake
+
+  minio:
+    image: quay.io/minio/minio
+    container_name: minio
+    hostname: minio
+    command: server --address 0.0.0.0:10000 --console-address 0.0.0.0:10001 /data
+    env_file:
+      - .env
+    volumes:
+      - ./services/minio/data:/data 
+    ports:
+      - '127.0.0.1:10000:10000'
+      - '127.0.0.1:10001:10001'
+    environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
-      MINIO_DEFAULT_BUCKETS: ${MINIO_DEFAULT_BUCKETS}
-    ports:
-      - "${MINIO_PORT_1}:9000"
-      - "${MINIO_PORT_2}:9001"
-    volumes:
-      - ./minio/data:/data
     networks:
       - datalake
   
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./services/grafana/data:/var/lib/grafana
+    networks:
+      - datalake
+
   # airflow-postgres:
   #   image: postgres:13
   #   container_name: airflow-postgres

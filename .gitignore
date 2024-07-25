@@ -1,5 +1,6 @@
 .env
-minio/data/
-/jars
 /airflow/logs
 /misc
+/services/spark/spark_catalog.ipynb
+/services/minio/data
+/services/grafana/
